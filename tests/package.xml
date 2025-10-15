@@ -1,0 +1,7 @@
+<package>
+  <name>express</name>
+  <url>https://afs</url>
+  <mode>real</mode>
+  <output>graph.svg</output>
+  <depth>3</depth>
+</package>
