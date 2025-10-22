@@ -4,7 +4,7 @@
 
 
 ## Run
-`cargo run -- --package=tests/package.xml`
+`cargo run -- --package=tests/real-package.xml`
 
 
 ## Dev info
