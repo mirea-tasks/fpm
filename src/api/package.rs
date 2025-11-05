@@ -1,52 +1,70 @@
+use log::info;
 use reqwest::blocking::get;
+use ptree::{TreeItem, Style};
 use serde::Deserialize;
 use serde_json::from_str;
+use core::str;
 use std::{collections::HashMap, fs, path::PathBuf};
 
-use crate::types::package::Package;
+use crate::types::package::{MetaPackage, JSPackage};
 
+const DEFAULT_PACKAGES_DIR: &str = "./tests/";
 const DEFAULT_PACKAGE_META: &str = "package.json";
+const DEFAULT_NPM_URL: &str = "https://registry.npmjs.org";
 
 
-#[derive(Debug, Deserialize)]
-pub struct PackageJson {
-    pub name: String,
-    pub version: String,
-    pub dependencies: Option<HashMap<String, String>>,
-}
-
-impl Package {
-    pub fn request_main_get_package(&self) -> Result<PackageJson, Box<dyn std::error::Error>> {
+impl MetaPackage {
+    pub fn request_main_get_package(&self) -> Result<JSPackage, Box<dyn std::error::Error>> {
         let response = get(self.url.clone())?;
-        let package_serealize: PackageJson = response.json()?;
+        let package_serealize: JSPackage = response.json()?;
 
         Ok(package_serealize)
     }
 
-    pub fn file_get_package(&self) -> Result<PackageJson, Box<dyn std::error::Error>> {
-        let mut path_buf = if self.url.path().ends_with(DEFAULT_PACKAGE_META) {
-            self.url
-                .to_file_path()
-                .map_err(|_| "incorrect file url, ex. file:///")?
-        } else {
-            let mut buf = self
-                .url
-                .to_file_path()
-                .map_err(|_| "incorrect file url, ex. file:///")?;
-            buf.push(DEFAULT_PACKAGE_META);
-            buf
-        };
+    fn load_from_path(path: &String) -> Result<JSPackage, Box<dyn std::error::Error>> {
+        let mut path_buf = std::path::PathBuf::from(path);
 
-        // TODO: its bad practice use file:/// for relative path
-        path_buf = path_buf
-            .to_str()
-            .map(|s| s.trim_start_matches('/'))
-            .map(PathBuf::from)
-            .unwrap();
+        if !path.ends_with(DEFAULT_PACKAGE_META) {
+            path_buf.push(DEFAULT_PACKAGE_META);
+        }
 
-        let file_content = fs::read_to_string(&path_buf)?;
-        let package: PackageJson = from_str(&file_content)?;
-
+        let file_content = std::fs::read_to_string(&path_buf)?;
+        let package: JSPackage = serde_json::from_str(&file_content)?;
         Ok(package)
+    }
+
+    pub fn file_get_package(&self) -> Result<JSPackage, Box<dyn std::error::Error>> {
+        Self::load_from_path(&self.url)
+    }
+}
+
+impl JSPackage {
+    pub fn request_get_package(&self) -> Result<JSPackage, Box<dyn std::error::Error>> {
+        let response = get(
+            format!("{}/{}/{}", DEFAULT_NPM_URL, self.name, self.version.replace("^", ""))
+        )?;
+        let package_serealize: JSPackage = response.json()?;
+
+        Ok(package_serealize)
+    }
+
+    pub fn file_get_package(&self) -> Result<JSPackage, Box<dyn std::error::Error>> {
+        MetaPackage::load_from_path(
+            &format!("{}/{}", DEFAULT_PACKAGES_DIR, self.name)
+        )
+    }
+}
+
+
+impl TreeItem for JSPackage {
+    type Child = JSPackage;
+
+    fn write_self<W: std::io::Write>(&self, f: &mut W, _style: &Style) -> std::io::Result<()> {
+        write!(f, "{}@{}", self.name, self.version)
+    }
+
+    #[warn(mismatched_lifetime_syntaxes)]
+    fn children(&self) -> std::borrow::Cow<[Self::Child]> {
+        std::borrow::Cow::Borrowed(&self.dependencies)
     }
 }

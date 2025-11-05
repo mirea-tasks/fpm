@@ -1,0 +1,8 @@
+{
+    "name": "c",
+    "url": "./tests/c",
+    "version": "1.0.0",
+    "dependencies": {
+        "d": "5.0.0"
+    }
+}

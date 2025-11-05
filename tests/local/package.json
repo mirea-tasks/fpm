@@ -1,8 +1,9 @@
 {
-    "name": "test-package",
-    "version": "1.0.0",
-    "dependencies": {
-      "a": "1.0.0",
-      "b": "^2.0.0"
-    }
+  "name": "test-package",
+  "url": "./tests/local",
+  "version": "1.0.0",
+  "dependencies": {
+    "a": "1.0.0",
+    "b": "^2.0.0"
   }
+}

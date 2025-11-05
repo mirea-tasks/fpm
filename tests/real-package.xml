@@ -3,5 +3,5 @@
   <url>https://raw.githubusercontent.com/expressjs/express/master/package.json</url>
   <mode>real</mode>
   <output>graph.svg</output>
-  <depth>3</depth>
+  <depth>0</depth>
 </package>

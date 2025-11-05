@@ -12,8 +12,4 @@ let
 in
 pkgs.mkShell {
   buildInputs = [ pkgs.cargo pkgs.rustc ] ++ libs;
-
-  shellHook = ''
-
-  '';
 }
