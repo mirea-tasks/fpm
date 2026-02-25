@@ -11,4 +11,4 @@
 - variant `1`
 - group `IKBO-65-24`
 
-2
+3
